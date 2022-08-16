@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 namespace Sam.SwaggerVersioning.Infrastructure.SwaggerConfigurations
 {
@@ -10,8 +11,7 @@ namespace Sam.SwaggerVersioning.Infrastructure.SwaggerConfigurations
     {
         private readonly IApiVersionDescriptionProvider provider;
 
-        public ConfigureSwaggerOptions(
-            IApiVersionDescriptionProvider provider)
+        public ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider)
         {
             this.provider = provider;
         }
@@ -21,9 +21,15 @@ namespace Sam.SwaggerVersioning.Infrastructure.SwaggerConfigurations
             // add swagger document for every API version discovered
             foreach (var description in provider.ApiVersionDescriptions)
             {
-                options.SwaggerDoc(
-                    description.GroupName,
-                    CreateVersionInfo(description));
+                var info = new OpenApiInfo()
+                {
+                    Title = $"{Assembly.GetCallingAssembly().GetName().Name} API",
+                    Version = description.ApiVersion.ToString()
+                };
+
+                if (description.IsDeprecated) info.Description += " This API version has been deprecated.";
+
+                options.SwaggerDoc(description.GroupName, info);
             }
         }
 
@@ -31,22 +37,5 @@ namespace Sam.SwaggerVersioning.Infrastructure.SwaggerConfigurations
         {
             Configure(options);
         }
-
-        private OpenApiInfo CreateVersionInfo(ApiVersionDescription description)
-        {
-            var info = new OpenApiInfo()
-            {
-                Title = "Sam.SwaggerVersioning API",
-                Version = description.ApiVersion.ToString()
-            };
-
-            if (description.IsDeprecated)
-            {
-                info.Description += " This API version has been deprecated.";
-            }
-
-            return info;
-        }
     }
-
 }

@@ -21,7 +21,7 @@ namespace Sam.SwaggerVersioning
         {
             services.AddControllers();
 
-            services.AddSwaggerWithVersioning(true);
+            services.AddSwaggerWithVersioning();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
